@@ -1,0 +1,28 @@
+#!/bin/bash
+#Executes a vim command for each given file
+
+if [[ $# -lt 2 ]]; then echo "Missing arguments (\"vimdo --help\" for help)"; exit; fi
+
+if [[ $1 = "--help" ]];
+then 
+    echo "Usage: vimdo [COMMAND FILENAME...]"
+    echo "   or: vimdo [replace SEARCH REPLACEMENT FILENAME...]"
+    echo
+    echo "This program executes a vim command for each of the given files."
+    echo "'Command' may be a string of multiple vim commands separated by '|'."
+    echo
+    echo "NOTE/WARNING: make sure you end all substitutions with '/e', otherwise"
+    echo "it will stop at the first file that misses a match."
+    echo "You can always use the 'replace' argument instead"
+    exit
+elif [[ $1 = "replace" ]];
+then
+vim -N -u NONE -E \
+    -c "argdo! %s/$2/$3/ge | w" \
+    -c wq ${@:2}
+else 
+vim -N -u NONE -E \
+    -c "argdo! $1 | w" \
+    -c wq ${@:2}
+
+fi
