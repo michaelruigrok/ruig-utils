@@ -17,9 +17,12 @@ then
     exit
 elif [[ $1 = "replace" ]];
 then
+    if [[ $# -lt 4 ]]; then echo "Missing arguments (\"vimdo --help\" for help)"; exit; fi
+
 vim -N -u NONE -E \
     -c "argdo! %s/$2/$3/ge | w" \
     -c wq ${@:2}
+
 else 
 vim -N -u NONE -E \
     -c "argdo! $1 | w" \
