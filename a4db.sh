@@ -29,7 +29,14 @@ fi
 testprogram="testa4.sh explain $1"
 
 #get the executable and arguments for that specific test
-test=`$testprogram | awk 'NR==8'`
+test=`$testprogram | awk '/.\/2310/'`
+
+if [[ `echo $test | grep \"\" -c` != 0 ]]; then
+    echo "$test"
+    echo "can't do anything with this, sorry :("
+    exit
+fi
+
 testexec=`echo $test | cut -d\  -f 1`
 testargs=`echo $test | cut -d\  -f 2- | rev | cut -d\  -f 5- | rev`
 
