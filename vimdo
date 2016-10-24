@@ -21,7 +21,7 @@ then
 
 vim -N -u NONE -E \
     -c "argdo! %s/$2/$3/ge | w" \
-    -c wq ${@:2}
+    -c wq ${@:4}
 
 else 
 vim -N -u NONE -E \
