@@ -1,14 +1,19 @@
+
 if [[ $# -eq 0 ]]; then
     echo "You need a test argument bro";
-    echo "Usage: a4db TESTNAME OPTION";
+    echo "Usage: a4db [TESTNAME [OPTION]]";
+    echo "   or: a4db list;"
     echo "(a4db.sh --help for help)";
     exit;
 fi
 
 if [[ $1 = "--help" ]]; then
-    echo "Usage: a4db TESTNAME OPTION"
+    echo "Usage: a4db TESTNAME [OPTION]";
+    echo "   or: a4db list;"
     echo
-    echo "if OPTION is 'valgrind', program will print valgrind"
+    echo "if argument is 'list', a4db.sh will list all possible tests"
+
+    echo "if OPTION is 'valgrind', a4db.sh will print valgrind"
     echo " results into valgrind.out, and then open that file in less"
     echo
     echo "if OPTION is 'single', diff will print in 1 column"
@@ -24,6 +29,16 @@ if [[ $1 = "--help" ]]; then
     echo "argument, and then enter the command 'source gdb.run'"
     echo "in place of the regulary 'run' command"
     exit
+
+elif [[ $1 = 'list' ]]; then
+    testnames="cat tests/grum.py"
+    teamTests=`$testnames | awk '/class Team/,/class Controller/{ if (/def/) {print}}' | sed -r -e 's/.* (.*)\(.*/Team.\1/'`
+    contTests=`$testnames | awk '/class Controller/,0{ if (/def/) {print}}' | sed -r -e 's/.* (.*)\(.*/Controller.\1/'`
+    echo "$teamTests"
+    echo "$contTests"
+    #$testprogram | awk 
+    exit
+
 fi
 
 testprogram="testa4.sh explain $1"
@@ -32,7 +47,9 @@ testprogram="testa4.sh explain $1"
 test=`$testprogram | awk '/.\/2310/'`
 
 if [[ `echo $test | grep \"\" -c` != 0 ]]; then
-    echo "$test"
+    $testprogram
+    #$testprogram | awk 'NR==7,/Expect exit status/'
+    echo ---------------------------------------------------------------------
     echo "can't do anything with this, sorry :("
     exit
 fi
