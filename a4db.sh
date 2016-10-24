@@ -11,21 +11,28 @@ if [[ $# -eq 0 ]]; then
     echo "   or: a4db list;"
     echo "(a4db.sh --help for help)";
     exit;
+fi
 
-elif [[ $1 = "--help" ]]; then
-    echo "Usage: a4db TESTNAME [OPTION]";
+if [[ $1 = --debug ]]; then
+    #debug is a dangerous option, which enables
+    #potentially unsafe changes
+    echo "WARNING: DEBUG MODE"
+    _DEBUG="on"
+    shift
+fi
+
+case $1 in
+--help)
+    echo "Usage: a4db [OPTION] TESTNAME";
     echo "   or: a4db list;"
+    echo
+    echo "Arguments"
+    echo "   -s, --single           print diff in 1 column (instead of 2)"
+    echo "   -v, --vim              run vimdiff instead of diff"
+    echo "   -m, --valgrind         run the test in valgrind & output in less"
     echo
     echo "if argument is 'list', a4db.sh will list all possible tests"
     echo
-    echo "if OPTION is 'valgrind', a4db.sh will print valgrind"
-    echo " results into valgrind.out, and then open that file in less"
-    echo
-    echo "if OPTION is 'single', diff will print in 1 column"
-    echo "if OPTION is 'vim', vimdiff will run instead"
-    echo "otherwise it will diff in side-by-side mode"
-    echo
-    echo "This program will:"
     echo "1) Run the associated test"
     echo "2) print both the stdout and stderr diffs"
     echo "3) create a GDB source file (gdb.run) containing a gdb"
@@ -34,23 +41,39 @@ elif [[ $1 = "--help" ]]; then
     echo "argument, and then enter the command 'source gdb.run'"
     echo "in place of the regulary 'run' command"
     exit
+    ;;
 
-elif [[ $1 = 'list' ]]; then
+list)
     testnames="cat tests/grum.py"
     teamTests=`$testnames | awk '/class Team/,/class Controller/{ if (/def/) {print}}' | sed -r -e 's/.* (.*)\(.*/Team.\1/'`
     contTests=`$testnames | awk '/class Controller/,0{ if (/def/) {print}}' | sed -r -e 's/.* (.*)\(.*/Controller.\1/'`
-    echo "$teamTests"
-    echo "$contTests"
+    echo "$teamTests" "$contTests"
     #$testprogram | awk 
     exit
+    ;;
 
-elif [[ $1 = '--debug' ]]; then
-    #debug is a dangerous option, which enables
-    #potentially unsafe changes
-    echo "WARNING: DEBUG MODE"
-    _DEBUG="on"
+--single|-s)
+    diffarg='diff '
+    echo "second argument is 'single'; gonna output diff in one column"
     shift
-fi
+    ;;
+
+--vim|-v)
+    diffarg='vimdiff '
+    echo "second argument is 'vim'; gonna output diff as vimdiff"
+    shift
+    ;;
+
+-m|--valgrind)
+    mode="valgrind"
+    shift
+    ;;
+
+*)
+    diffarg='diff -y '
+    ;;
+
+esac 
 
 testprogram="testa4.sh explain $1"
 
@@ -73,26 +96,18 @@ testargs=`echo $test | cut -d\  -f 2- | rev | cut -d\  -f 5- | rev`
 echo -n 'r ' > ./gdb.run
 echo $testargs >> ./gdb.run
 
-if [[ $2 = 'valgrind' ]]; then
-valcommand="valgrind --track-origins=yes $testexec $testargs 2> valgrind.out"
-echo $valcommand
-`$valcommand`
-#cat valgrind.out
+if [[ $# -gt 1 ]]; then
+    echo "Just in case you didn't know, the way this script works has changed."
+    echo "Check out --help to get back on track if need be"
+
+elif [[ $mode = 'valgrind' ]]; then
+    valcommand="valgrind --log-fd=1 --track-origins=yes $testexec $testargs"
+    echo $valcommand
+    eval $valcommand | less
 
 else
     echo $test
     eval $test #run test
-
-    diffarg='diff -y '
-    if [[ $2 = 'single' ]]; then
-        diffarg='diff '
-        echo "second argument is 'single'; gonna output diff in one column"
-    elif [[ $2 = 'vim' ]]; then
-        diffarg='vimdiff '
-        echo "second argument is 'vim'; gonna output diff as vimdiff"
-    elif [[ $# -eq 2 ]]; then
-        echo "second argument can be either 'single' or 'vim', see a4db.sh --help"
-    fi
 
     for stream in 'out' 'err';
     do
