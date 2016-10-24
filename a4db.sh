@@ -1,3 +1,9 @@
+#!/bin/bash
+
+function DEBUG()
+{
+    [ "$_DEBUG" == "on" ] &&  $@ 
+}
 
 if [[ $# -eq 0 ]]; then
     echo "You need a test argument bro";
@@ -5,14 +11,13 @@ if [[ $# -eq 0 ]]; then
     echo "   or: a4db list;"
     echo "(a4db.sh --help for help)";
     exit;
-fi
 
-if [[ $1 = "--help" ]]; then
+elif [[ $1 = "--help" ]]; then
     echo "Usage: a4db TESTNAME [OPTION]";
     echo "   or: a4db list;"
     echo
     echo "if argument is 'list', a4db.sh will list all possible tests"
-
+    echo
     echo "if OPTION is 'valgrind', a4db.sh will print valgrind"
     echo " results into valgrind.out, and then open that file in less"
     echo
@@ -39,6 +44,12 @@ elif [[ $1 = 'list' ]]; then
     #$testprogram | awk 
     exit
 
+elif [[ $1 = '--debug' ]]; then
+    #debug is a dangerous option, which enables
+    #potentially unsafe changes
+    echo "WARNING: DEBUG MODE"
+    _DEBUG="on"
+    shift
 fi
 
 testprogram="testa4.sh explain $1"
@@ -63,9 +74,9 @@ echo -n 'r ' > ./gdb.run
 echo $testargs >> ./gdb.run
 
 if [[ $2 = 'valgrind' ]]; then
->&2 echo "the valgrind option is currently broken. You can run this command yourself though:"
 valcommand="valgrind --track-origins=yes $testexec $testargs 2> valgrind.out"
 echo $valcommand
+`$valcommand`
 #cat valgrind.out
 
 else
