@@ -154,10 +154,11 @@ if [[ `echo "$test" | wc -l` = 1 ]]; then
 
 else
 
-    test=echo "$test" | awk '/.\/2310/{print;exit}'
-    echo $test
-    testexec=`echo $($test) | cut -d\  -f 1`
-    testargs=`echo $($test) | cut -d\  -f 2- | rev | cut -d\  -f 5- | rev`
+    if [[ -z ${_DEBUG} ]]; then
+    test="$(echo "$test" | awk '/.\/2310/{print;exit}')"
+    echo "$test"
+    testexec=`echo $test | cut -d\  -f 1`
+    testargs=`echo $test | cut -d\  -f 2- | rev | cut -d\  -f 5- | rev`
 
     #take the arguments and construct a gdb run argument out of them (in gdb.run)
     #type 'so[urce] gdb.run' to use it
@@ -168,28 +169,31 @@ else
 
     echo ---------------------------------------------------------------------
     echo "can't do anything with this, sorry :("
-    exit
+    exit; fi
+
     firsttest="$(echo "$test" | awk 'NR==1')"
 
     ftestout="$(echo "$firsttest" | grep -E -o '\S*.out')"
     ftesterr="$(echo "$firsttest" | grep -E -o '\S*.err')"
 
-    rm -f out.a4db err.a4db
-    mkfifo out.a4db err.a4db
-    firsttest="$(echo "$firsttest" | sed -e "s/$ftestout/out.a4db/g" -e "s/$ftesterr/err.a4db/g")"
+    #rm -f out.a4db err.a4db
+    #mkfifo out.a4db err.a4db
+    #firsttest="$(echo "$firsttest" | sed -e "s/$ftestout/out.a4db/g" -e "s/$ftesterr/err.a4db/g")"
+    firsttest="$(echo "$firsttest" | sed -e 's/>.*//g')"
     echo $firsttest
 
-    eval $firsttest & echo sdfhaslfjaslfjsadldfsaldjf
+    eval $firsttest | awk '{print; exit;}' & echo sdfhaslfjaslfjsadldfsaldjf
+    killit=$!
     #$echo "$firsttest" > $ftestout & echo sdfhaslfjaslfjsadldfsaldjf
-    portno="$(awk '{print $1; exit;}' < $ftesterr)"
+    portno="$(awk '{print; exit;}' < this.out)"
     echo Portno:
     echo $portno
     othertests="$(echo "$test" | awk '1,0{print;}' | sed -e "s/\"\"\|\[ncserv_port\]/$portno/g")"
     echo "$othertests"
     #test=echo "$othertests" | perl -pe 's/\n/ \&'
     echo "$othertests"
-    sleep 1
-    kill $!
+    sleep 3
+    kill $(jobs -p)
     
     cat portno.a4db
     rm portno.a4db
