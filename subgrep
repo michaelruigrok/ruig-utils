@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#Executes a vim command for each given file
+
+if [[ $1 = "--help" ]];
+then 
+    echo "Usage: subgrep [BEGINNING END MATCH]"
+    echo "   or: subgrep [OPTION DELIM MATCH]"
+    echo
+    echo "Search for a pattern between up to 2 other patterns, inclusive."
+    echo "Any matches between the first occurrence of BEGINNING and the first occurence"
+    echo "of END will be matched, but another occurence of BEGINNING will search again."
+    echo "DELIM is either the same as BEGINNING or END, depending on what OPTION is given"
+    echo
+    echo "Arguments:"
+    echo "    -B                         Run from the beginning of the file (DELIM is END)"
+    echo "    -b, --beginning=LINENUM    Specify line to begin from (otherwise -B)"
+    echo "    -E                         Run from the end of the file (DELIM is BEGINNING)"
+    echo "    -e, --end=LINENUM          Specify line to begin from (otherwise -E)"
+    echo
+    exit
+fi
+
+#check number of arguments
+if [[ $# -lt 2 ]]; then echo "Missing arguments (subgrep --help for help)"; exit; fi
+
+#main
+beginning=1
+end=0
+
+case $1 in
+    -b)
+        beginning=$2
+        shift
+        ;;&
+    -b|-B)
+        awk "NR==$beginning,/$2/{ if (/$3/) {print}}" "${@:4}"
+        ;;
+    -e)
+        end=$2
+        shift
+        ;;&
+    -e|-E)
+        awk "/$2/,$end{ if (/$3/) {print}}" "${@:4}"
+        ;;
+    *)
+        echo $1 $2 $3
+        awk "/$1/,/$2/{ if (/$3/) {print}}" "${@:4}"
+        ;;
+esac
+exit $?
