@@ -1,7 +1,5 @@
-#!/bin/bash
+#!/bin/env bash
 #Executes a vim command for each given file
-
-if [[ $# -lt 2 ]]; then echo "Missing arguments (\"vimdo --help\" for help)"; exit; fi
 
 if [[ $1 = "--help" ]];
 then 
@@ -15,17 +13,26 @@ then
     echo "it will stop at the first file that misses a match."
     echo "You can always use the 'replace' argument instead"
     exit
-elif [[ $1 = "replace" ]];
+fi
+
+#check number of arguments
+if [[ $# -lt 2 ]]; then echo "Missing arguments (\"vimdo --help\" for help)"; exit; fi
+
+if [[ $1 = "replace" ]];
 then
-    if [[ $# -lt 4 ]]; then echo "Missing arguments (\"vimdo --help\" for help)"; exit; fi
+	if [[ $# -lt 4 ]]; then
+		echo "Missing arguments (\"vimdo --help\" for help)";
+		exit;
+	fi
+
 
 vim -N -u NONE -E \
     -c "argdo! %s/$2/$3/ge | w" \
-    -c wq ${@:4}
+    -c wq "${@:4}"
 
 else 
 vim -N -u NONE -E \
     -c "argdo! $1 | w" \
-    -c wq ${@:2}
+    -c wq "${@:2}"
 
 fi
