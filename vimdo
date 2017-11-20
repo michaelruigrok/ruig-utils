@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #Executes a vim command for each given file
 
-if [[ $1 = "--help" ]];
+if [[ "$1" = "--help" ]];
 then 
     echo "Usage: vimdo [COMMAND FILENAME...]"
     echo "   or: vimdo [replace SEARCH REPLACEMENT FILENAME...]"
@@ -18,7 +18,7 @@ fi
 #check number of arguments
 if [[ $# -lt 2 ]]; then echo "Missing arguments (\"vimdo --help\" for help)"; exit; fi
 
-if [[ $1 = "replace" ]];
+if [[ "$1" = "replace" ]];
 then
 	if [[ $# -lt 4 ]]; then
 		echo "Missing arguments (\"vimdo --help\" for help)";
@@ -32,7 +32,7 @@ vim -N -u NONE -E \
 
 else 
 vim -N -u NONE -E \
-    -c "argdo! $1 | w" \
+    -c "argdo! "$1" | w" \
     -c wq "${@:2}"
 
 fi

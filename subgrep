@@ -3,8 +3,8 @@
 
 if [[ $1 = "--help" ]];
 then 
-    echo "Usage: subgrep [BEGINNING END MATCH]"
-    echo "   or: subgrep [OPTION DELIM MATCH]"
+    echo "Usage: subgrep [BEGINNING END] MATCH"
+    echo "   or: subgrep [OPTION DELIM] MATCH"
     echo
     echo "Search for a pattern between up to 2 other patterns, inclusive."
     echo "Any matches between the first occurrence of BEGINNING and the first occurence"
@@ -27,16 +27,16 @@ if [[ $# -lt 2 ]]; then echo "Missing arguments (subgrep --help for help)"; exit
 beginning=1
 end=0
 
-case $1 in
+case "$1" in
     -b)
-        beginning=$2
+        beginning="$2"
         shift
         ;;&
     -b|-B)
         awk "NR==$beginning,/$2/{ if (/$3/) {print}}" "${@:4}"
         ;;
     -e)
-        end=$2
+        end="$2"
         shift
         ;;&
     -e|-E)
